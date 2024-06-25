@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Racing Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #2b2b2b;
+        }
+        #gameCanvas {
+            background: #333;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #fff;
+        }
+        .car {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: red;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10px;
+        }
+        .obstacle {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: yellow;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+        const carWidth = 50;
+        const carHeight = 100;
+        const car = { x: canvas.width / 2 - carWidth / 2, y: canvas.height - carHeight - 10 };
+        const obstacles = [];
+        let gameOver = false;
+        let score = 0;
+
+        function drawCar() {
+            context.fillStyle = 'red';
+            context.fillRect(car.x, car.y, carWidth, carHeight);
+        }
+
+        function drawObstacles() {
+            context.fillStyle = 'yellow';
+            for (const obstacle of obstacles) {
+                context.fillRect(obstacle.x, obstacle.y, carWidth, carHeight);
+                obstacle.y += 5;
+            }
+        }
+
+        function detectCollision() {
+            for (const obstacle of obstacles) {
+                if (
+                    car.x < obstacle.x + carWidth &&
+                    car.x + carWidth > obstacle.x &&
+                    car.y < obstacle.y + carHeight &&
+                    car.y + carHeight > obstacle.y
+                ) {
+                    gameOver = true;
+                }
+            }
+        }
+
+        function update() {
+            if (gameOver) {
+                context.font = '30px Arial';
+                context.fillStyle = 'white';
+                context.fillText('Game Over!', canvas.width / 2 - 80, canvas.height / 2);
+                context.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 40);
+                return;
+            }
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawCar();
+            drawObstacles();
+            detectCollision();
+
+            score++;
+            if (Math.random() < 0.02) {
+                const x = Math.random() * (canvas.width - carWidth);
+                obstacles.push({ x: x, y: -carHeight });
+            }
+
+            obstacles.forEach((obstacle, index) => {
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                }
+            });
+
+            requestAnimationFrame(update);
+        }
+
+        function moveCar(event) {
+            const key = event.key;
+            if (key === 'ArrowLeft' && car.x > 0) {
+                car.x -= 10;
+            } else if (key === 'ArrowRight' && car.x < canvas.width - carWidth) {
+                car.x += 10;
+            }
+        }
+
+        document.addEventListener('keydown', moveCar);
+        update();
+    </script>
+</body>
+</html>
